@@ -23,7 +23,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2022-01-01
+          toolchain: nightly-2022-02-01
           components: rustfmt, clippy, miri
           override: true
 
