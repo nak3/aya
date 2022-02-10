@@ -23,7 +23,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           components: rustfmt, clippy, miri
           override: true
 
@@ -47,7 +47,7 @@ jobs:
         env:
           MIRIFLAGS: -Zmiri-disable-stacked-borrows
         run: |
-          cargo miri test --manifest-path Cargo.toml
+          cargo miri test
           pushd bpf
-          cargo miri test --manifest-path Cargo.toml
+          cargo miri test
           popd
