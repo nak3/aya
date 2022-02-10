@@ -47,7 +47,7 @@ jobs:
         env:
           MIRIFLAGS: -Zmiri-disable-stacked-borrows
         run: |
-          cargo miri test
+          cargo miri test --manifest-path Cargo.toml
           pushd bpf
-          cargo miri test
+          cargo miri test --manifest-path Cargo.toml
           popd
