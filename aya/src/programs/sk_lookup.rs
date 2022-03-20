@@ -1,7 +1,7 @@
 use crate::{
     generated::{
         bpf_attach_type::{BPF_SK_SKB_STREAM_PARSER, BPF_SK_SKB_STREAM_VERDICT},
-        bpf_prog_type::BPF_PROG_TYPE_SK_SKB,
+        bpf_prog_type::BPF_PROG_TYPE_SK_LOOKUP,
     },
     maps::sock::SocketMap,
     programs::{load_program, LinkRef, ProgAttachLink, ProgramData, ProgramError},
@@ -12,9 +12,7 @@ use crate::{
 #[derive(Copy, Clone, Debug)]
 pub enum SkLookupKind {
     /// A Stream Parser
-    StreamParser,
-    /// A Stream Verdict
-    StreamVerdict,
+    SkLookup,
 }
 
 /// A program used to intercept ingress socket buffers.
@@ -57,7 +55,7 @@ impl SkLookup {
     ///
     /// See also [`Program::load`](crate::programs::Program::load).
     pub fn load(&mut self) -> Result<(), ProgramError> {
-        load_program(BPF_PROG_TYPE_SK_SKB, &mut self.data)
+        load_program(BPF_PROG_TYPE_SK_LOOKUP, &mut self.data)
     }
 
     /// Attaches the program to the given socket map.
