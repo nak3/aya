@@ -111,6 +111,7 @@ pub enum ProgramSection {
     SocketFilter { name: String },
     Xdp { name: String },
     SkMsg { name: String },
+    SkLookup { name: String },
     SkSkbStreamParser { name: String },
     SkSkbStreamVerdict { name: String },
     SockOps { name: String },
@@ -139,6 +140,7 @@ impl ProgramSection {
             ProgramSection::SocketFilter { name } => name,
             ProgramSection::Xdp { name } => name,
             ProgramSection::SkMsg { name } => name,
+            ProgramSection::SkLookup { name } => name,
             ProgramSection::SkSkbStreamParser { name } => name,
             ProgramSection::SkSkbStreamVerdict { name } => name,
             ProgramSection::SockOps { name } => name,
@@ -188,6 +190,7 @@ impl FromStr for ProgramSection {
             }
             "socket" => SocketFilter { name },
             "sk_msg" => SkMsg { name },
+            "sk_lookup" => SkLookup { name },
             "sk_skb" => match &*name {
                 "stream_parser" => SkSkbStreamParser { name },
                 "stream_verdict" => SkSkbStreamVerdict { name },

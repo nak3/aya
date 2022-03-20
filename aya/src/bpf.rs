@@ -24,7 +24,7 @@ use crate::{
     programs::{
         BtfTracePoint, CgroupSkb, CgroupSkbAttachType, Extension, FEntry, FExit, KProbe, LircMode2,
         Lsm, PerfEvent, ProbeKind, Program, ProgramData, ProgramError, RawTracePoint,
-        SchedClassifier, SkMsg, SkSkb, SkSkbKind, SockOps, SocketFilter, TracePoint, UProbe, Xdp,
+        SchedClassifier, SkMsg, SkLookup, SkLookupKind, SkSkb, SkSkbKind, SockOps, SocketFilter, TracePoint, UProbe, Xdp,
     },
     sys::{
         bpf_load_btf, bpf_map_freeze, bpf_map_update_elem_ptr, is_btf_datasec_supported,
@@ -444,6 +444,10 @@ impl<'a> BpfLoader<'a> {
                         }
                         ProgramSection::Xdp { .. } => Program::Xdp(Xdp { data }),
                         ProgramSection::SkMsg { .. } => Program::SkMsg(SkMsg { data }),
+                        ProgramSection::SkLookup { .. } => Program::SkLookup(SkLookup { 
+                            data,
+                            kind: SkLookupKind::SkLookup,
+                        }),
                         ProgramSection::SkSkbStreamParser { .. } => Program::SkSkb(SkSkb {
                             data,
                             kind: SkSkbKind::StreamParser,
