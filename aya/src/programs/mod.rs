@@ -220,8 +220,6 @@ pub enum Program {
     TracePoint(TracePoint),
     /// A [`SocketFilter`] program
     SocketFilter(SocketFilter),
-    /// A [`SkLookup`] program
-    SocketLookup(SocketLookup),
     /// A [`Xdp`] program
     Xdp(Xdp),
     /// A [`SkMsg`] program
