@@ -287,6 +287,7 @@ impl Program {
             Program::FEntry(_) => BPF_PROG_TYPE_TRACING,
             Program::FExit(_) => BPF_PROG_TYPE_TRACING,
             Program::Extension(_) => BPF_PROG_TYPE_EXT,
+            Program::SkLookup(_) => BPF_PROG_TYPE_SK_LOOKUP,
         }
     }
 
