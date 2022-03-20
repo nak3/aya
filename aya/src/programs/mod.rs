@@ -220,12 +220,16 @@ pub enum Program {
     TracePoint(TracePoint),
     /// A [`SocketFilter`] program
     SocketFilter(SocketFilter),
+    /// A [`SkLookup`] program
+    SocketLookup(SocketLookup),
     /// A [`Xdp`] program
     Xdp(Xdp),
     /// A [`SkMsg`] program
     SkMsg(SkMsg),
     /// A [`SkSkb`] program
     SkSkb(SkSkb),
+    /// A [`SkLookup`] program
+    SkLookup(SkLookup),
     /// A [`SockOps`] program
     SockOps(SockOps),
     /// A [`SchedClassifier`] program
@@ -276,6 +280,7 @@ impl Program {
             Program::Xdp(_) => BPF_PROG_TYPE_XDP,
             Program::SkMsg(_) => BPF_PROG_TYPE_SK_MSG,
             Program::SkSkb(_) => BPF_PROG_TYPE_SK_SKB,
+            Program::SkLookup(_) => BPF_PROG_TYPE_SK_LOOKUP,
             Program::SockOps(_) => BPF_PROG_TYPE_SOCK_OPS,
             Program::SchedClassifier(_) => BPF_PROG_TYPE_SCHED_CLS,
             Program::CgroupSkb(_) => BPF_PROG_TYPE_CGROUP_SKB,
@@ -287,7 +292,6 @@ impl Program {
             Program::FEntry(_) => BPF_PROG_TYPE_TRACING,
             Program::FExit(_) => BPF_PROG_TYPE_TRACING,
             Program::Extension(_) => BPF_PROG_TYPE_EXT,
-            Program::SkLookup(_) => BPF_PROG_TYPE_SK_LOOKUP,
         }
     }
 
@@ -305,6 +309,7 @@ impl Program {
             Program::Xdp(p) => &p.data,
             Program::SkMsg(p) => &p.data,
             Program::SkSkb(p) => &p.data,
+            Program::SkLookup(p) => &p.data,
             Program::SockOps(p) => &p.data,
             Program::SchedClassifier(p) => &p.data,
             Program::CgroupSkb(p) => &p.data,
@@ -328,6 +333,7 @@ impl Program {
             Program::Xdp(p) => &mut p.data,
             Program::SkMsg(p) => &mut p.data,
             Program::SkSkb(p) => &mut p.data,
+            Program::SkLookup(p) => &mut p.data,
             Program::SockOps(p) => &mut p.data,
             Program::SchedClassifier(p) => &mut p.data,
             Program::CgroupSkb(p) => &mut p.data,
@@ -628,6 +634,7 @@ impl_program_fd!(
     Xdp,
     SkMsg,
     SkSkb,
+    SkLookup,
     SchedClassifier,
     CgroupSkb,
     LircMode2,
@@ -676,6 +683,7 @@ impl_try_from_program!(
     Xdp,
     SkMsg,
     SkSkb,
+    SkLookup,
     SockOps,
     SchedClassifier,
     CgroupSkb,
