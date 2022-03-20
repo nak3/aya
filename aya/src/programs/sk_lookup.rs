@@ -1,6 +1,6 @@
 use crate::{
     generated::{
-        bpf_attach_type::{BPF_SK_SKB_STREAM_PARSER, BPF_SK_SKB_STREAM_VERDICT},
+        bpf_attach_type::BPF_SK_LOOKUP,
         bpf_prog_type::BPF_PROG_TYPE_SK_LOOKUP,
     },
     maps::sock::SocketMap,
@@ -64,8 +64,7 @@ impl SkLookup {
         let map_fd = map.fd_or_err()?;
 
         let attach_type = match self.kind {
-            SkLookupKind::StreamParser => BPF_SK_SKB_STREAM_PARSER,
-            SkLookupKind::StreamVerdict => BPF_SK_SKB_STREAM_VERDICT,
+            SkLookupKind::SkLookup => BPF_SK_LOOKUP,
         };
         bpf_prog_attach(prog_fd, map_fd, attach_type).map_err(|(_, io_error)| {
             ProgramError::SyscallError {
