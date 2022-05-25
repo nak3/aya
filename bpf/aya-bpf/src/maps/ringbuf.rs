@@ -1,11 +1,10 @@
-use core::{marker::PhantomData, mem, ptr::NonNull};
-
-use aya_bpf_cty::{c_long, c_void};
+use core::{marker::PhantomData, mem};
 
 use crate::{
     bindings::{bpf_map_def, bpf_map_type::BPF_MAP_TYPE_RINGBUF},
-    helpers::{bpf_map_delete_elem, bpf_map_lookup_elem, bpf_map_update_elem},
+    helpers::{bpf_ringbuf_output},
     maps::PinningType,
+    BpfContext,
 };
 
 #[repr(transparent)]
