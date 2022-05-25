@@ -49,6 +49,7 @@ impl<T> PerfEventArray<T> {
         }
     }
 
+    // No index is fine.
     pub fn output<C: BpfContext>(&mut self, ctx: &C, data: &T, flags: u32) {
         self.output_at_index(ctx, BPF_F_CURRENT_CPU as u32, data, flags)
     }
