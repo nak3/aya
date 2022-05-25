@@ -165,7 +165,7 @@ pub struct Ringbuf<T: DerefMut<Target = Map>> {
 impl<T: DerefMut<Target = Map>> Ringbuf<T> {
     pub(crate) fn new(map: T) -> Result<Ringbuf<T>, MapError> {
         let map_type = map.obj.def.map_type;
-        if map_type != BPF_MAP_TYPE_PERF_EVENT_ARRAY as u32 {
+        if map_type != BPF_MAP_TYPE_RINGBUF as u32 {
             return Err(MapError::InvalidMapType {
                 map_type: map_type as u32,
             });
