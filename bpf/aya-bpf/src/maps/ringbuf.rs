@@ -9,18 +9,18 @@ use crate::{
 };
 
 #[repr(transparent)]
-pub struct PerfEventArray<T> {
+pub struct Ringbuf<T> {
     def: bpf_map_def,
     _t: PhantomData<T>,
 }
 
-impl<T> PerfEventArray<T> {
-    pub const fn new(flags: u32) -> PerfEventArray<T> {
-        PerfEventArray::with_max_entries(0, flags)
+impl<T> Ringbuf<T> {
+    pub const fn new(flags: u32) -> Ringbuf<T> {
+        Ringbuf::with_max_entries(0, flags)
     }
 
-    pub const fn with_max_entries(max_entries: u32, flags: u32) -> PerfEventArray<T> {
-        PerfEventArray {
+    pub const fn with_max_entries(max_entries: u32, flags: u32) -> Ringbuf<T> {
+        Ringbuf {
             def: bpf_map_def {
                 type_: BPF_MAP_TYPE_RINGBUF,
                 key_size: mem::size_of::<u32>() as u32,
@@ -34,8 +34,8 @@ impl<T> PerfEventArray<T> {
         }
     }
 
-    pub const fn pinned(max_entries: u32, flags: u32) -> PerfEventArray<T> {
-        PerfEventArray {
+    pub const fn pinned(max_entries: u32, flags: u32) -> Ringbuf<T> {
+        Ringbuf {
             def: bpf_map_def {
                 type_: BPF_MAP_TYPE_RINGBUF,
                 key_size: mem::size_of::<u32>() as u32,
@@ -51,10 +51,6 @@ impl<T> PerfEventArray<T> {
 
     // No index is fine.
     pub fn output<C: BpfContext>(&mut self, ctx: &C, data: &T, flags: u32) {
-        self.output_at_index(ctx, BPF_F_CURRENT_CPU as u32, data, flags)
-    }
-
-    pub fn output_at_index<C: BpfContext>(&mut self, ctx: &C, index: u32, data: &T, flags: u32) {
         let flags = (flags as u64) << 32 | index as u64;
         unsafe {
             bpf_ringbuf_output(
