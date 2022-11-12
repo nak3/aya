@@ -16,6 +16,7 @@ pub mod tc;
 pub mod tp_btf;
 pub mod tracepoint;
 pub mod xdp;
+pub mod lwt_in;
 
 pub use fentry::FEntryContext;
 pub use fexit::FExitContext;
@@ -35,3 +36,4 @@ pub use tc::TcContext;
 pub use tp_btf::BtfTracePointContext;
 pub use tracepoint::TracePointContext;
 pub use xdp::XdpContext;
+pub use lwt_in::LwtInContext;

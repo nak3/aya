@@ -62,6 +62,7 @@ pub mod trace_point;
 pub mod uprobe;
 mod utils;
 pub mod xdp;
+pub mod lwt_in;
 
 use libc::ENOSPC;
 use std::{
@@ -99,6 +100,8 @@ pub use tp_btf::BtfTracePoint;
 pub use trace_point::{TracePoint, TracePointError};
 pub use uprobe::{UProbe, UProbeError};
 pub use xdp::{Xdp, XdpError, XdpFlags};
+// TODO
+pub use lwt_in::LwtIn;
 
 use crate::{
     generated::{bpf_attach_type, bpf_prog_info, bpf_prog_type},
@@ -265,6 +268,8 @@ pub enum Program {
     SkLookup(SkLookup),
     /// A [`CgroupSock`] program
     CgroupSock(CgroupSock),
+    /// A [`LwtIn`] program
+    LwtIn(LwtIn),
 }
 
 impl Program {
@@ -295,6 +300,7 @@ impl Program {
             Program::CgroupSockAddr(_) => BPF_PROG_TYPE_CGROUP_SOCK_ADDR,
             Program::SkLookup(_) => BPF_PROG_TYPE_SK_LOOKUP,
             Program::CgroupSock(_) => BPF_PROG_TYPE_CGROUP_SOCK,
+            Program::LwtIn(_) => BPF_PROG_TYPE_LWT_IN,
         }
     }
 
@@ -324,6 +330,7 @@ impl Program {
             Program::CgroupSockAddr(p) => p.pin(path),
             Program::SkLookup(p) => p.pin(path),
             Program::CgroupSock(p) => p.pin(path),
+            Program::LwtIn(p) => p.pin(path),
         }
     }
 
@@ -353,6 +360,7 @@ impl Program {
             Program::CgroupSockAddr(p) => p.unload(),
             Program::SkLookup(p) => p.unload(),
             Program::CgroupSock(p) => p.unload(),
+            Program::LwtIn(p) => p.unload(),
         }
     }
 
@@ -385,6 +393,7 @@ impl Program {
             Program::CgroupSockAddr(p) => p.fd(),
             Program::SkLookup(p) => p.fd(),
             Program::CgroupSock(p) => p.fd(),
+            Program::LwtIn(p) => p.fd(),
         }
     }
 }
@@ -637,6 +646,7 @@ impl_program_unload!(
     SkLookup,
     SockOps,
     CgroupSock,
+    LwtIn,
 );
 
 macro_rules! impl_fd {
@@ -676,6 +686,7 @@ impl_fd!(
     SkLookup,
     SockOps,
     CgroupSock,
+    LwtIn,
 );
 
 macro_rules! impl_program_pin{
@@ -720,6 +731,7 @@ impl_program_pin!(
     SkLookup,
     SockOps,
     CgroupSock,
+    LwtIn,
 );
 
 macro_rules! impl_try_from_program {
@@ -774,6 +786,7 @@ impl_try_from_program!(
     CgroupSockAddr,
     SkLookup,
     CgroupSock,
+    LwtIn,
 );
 
 /// Provides information about a loaded program, like name, id and statistics

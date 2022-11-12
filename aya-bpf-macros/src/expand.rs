@@ -616,6 +616,40 @@ impl Lsm {
     }
 }
 
+// TODO
+pub struct LwtIn {
+    item: ItemFn,
+    name: String,
+}
+
+impl LwtIn {
+    pub fn from_syn(mut args: Args, item: ItemFn) -> Result<LwtIn> {
+        let name = name_arg(&mut args)?.unwrap_or_else(|| item.sig.ident.to_string());
+
+        Ok(LwtIn { item, name })
+    }
+
+    pub fn expand(&self) -> Result<TokenStream> {
+        let section_name = format!("lwt_in/{}", self.name);
+        let fn_name = &self.item.sig.ident;
+        let item = &self.item;
+        // TODO
+        // LSM probes need to return an integer corresponding to the correct
+        // policy decision. Therefore we do not simply default to a return value
+        // of 0 as in other program types.
+        Ok(quote! {
+            #[no_mangle]
+            #[link_section = #section_name]
+            fn #fn_name(ctx: *mut ::aya_bpf::bindings::__sk_buff) -> i32 {
+                return #fn_name(::aya_bpf::programs::LwtInContext::new(ctx));
+
+                #item
+            }
+        })
+    }
+}
+
+
 pub struct BtfTracePoint {
     item: ItemFn,
     name: String,

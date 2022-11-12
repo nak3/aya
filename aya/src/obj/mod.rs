@@ -293,6 +293,9 @@ pub enum ProgramSection {
         name: String,
         attach_type: CgroupSockAttachType,
     },
+    LwtIn {
+        name: String,
+    },
 }
 
 impl ProgramSection {
@@ -326,6 +329,7 @@ impl ProgramSection {
             ProgramSection::Extension { name } => name,
             ProgramSection::SkLookup { name } => name,
             ProgramSection::CgroupSock { name, .. } => name,
+            ProgramSection::LwtIn { name } => name,
         }
     }
 }
@@ -505,6 +509,7 @@ impl FromStr for ProgramSection {
             "fexit" => FExit { name },
             "freplace" => Extension { name },
             "sk_lookup" => SkLookup { name },
+            "lwt_in" => LwtIn { name },
             _ => {
                 return Err(ParseError::InvalidProgramSection {
                     section: section.to_owned(),
