@@ -1,6 +1,6 @@
 //! LWT_IN programs.
 use crate::{
-    generated::{bpf_attach_type::BPF_LSM_MAC, bpf_prog_type::BPF_PROG_TYPE_LSM},
+    generated::bpf_prog_type::BPF_PROG_TYPE_LWT_IN,
     obj::btf::{Btf, BtfKind},
     programs::{
         define_link_wrapper, load_program, utils::attach_raw_tracepoint, FdLink, FdLinkId,
@@ -58,12 +58,8 @@ impl LwtIn {
     ///
     /// * `lsm_hook_name` - full name of the LSM hook that the program should
     ///   be attached to
-    pub fn load(&mut self, lsm_hook_name: &str, btf: &Btf) -> Result<(), ProgramError> {
-        self.data.expected_attach_type = Some(BPF_LSM_MAC);
-        let type_name = format!("bpf_lsm_{}", lsm_hook_name);
-        self.data.attach_btf_id =
-            Some(btf.id_by_type_name_kind(type_name.as_str(), BtfKind::Func)?);
-        load_program(BPF_PROG_TYPE_LSM, &mut self.data)
+    pub fn load(&mut self) -> Result<(), ProgramError> {
+        load_program(BPF_PROG_TYPE_LWT_IN, &mut self.data)
     }
 
     /// Attaches the program.
