@@ -1,29 +1,35 @@
 //! LWT_IN programs.
-use crate::{
-    generated::bpf_prog_type::BPF_PROG_TYPE_LWT_IN,
-    obj::btf::{Btf, BtfKind},
-    programs::{
-        define_link_wrapper, load_program, utils::attach_raw_tracepoint, FdLink, FdLinkId,
-        ProgramData, ProgramError,
-    },
-};
-
 use crate::programs::RawFd;
 
+use thiserror::Error;
+
+use std::io;
 
 use crate::{
     generated::{
-        bpf_attach_type::{self, BPF_LWT_IN},
+        bpf_attach_type::self,
         bpf_link_type,
     },
+
+    programs::bpf_prog_type::BPF_PROG_TYPE_LWT_IN,
+
     programs::{
-        define_link_wrapper, load_program, FdLink, Link, LinkError, ProgramData, ProgramError,
+        define_link_wrapper, load_program, FdLink, Link, LinkError, ProgramData, ProgramError, ProgAttachLinkId,
     },
     sys::{
         bpf_link_create, bpf_link_get_info_by_fd, bpf_link_update, kernel_version,
         netlink_set_xdp_fd,
     },
+    util::ifindex_from_ifname,
+    maps::sock::SockMapFd,
 };
+
+use crate::sys::bpf_prog_attach;
+use std::os::unix::io::AsRawFd;
+
+use crate::programs::bpf_attach_type::BPF_CGROUP_INET_INGRESS;
+use crate::programs::ProgAttachLink;
+use crate::programs::FdLinkId;
 
 
 /// A program that attaches to Linux LSM hooks. Used to implement security policy and
@@ -96,37 +102,24 @@ impl LwtIn {
         load_program(BPF_PROG_TYPE_LWT_IN, &mut self.data)
     }
 
-    /// Attaches the program.
+    /// Attaches the program to the given socket map.
     ///
-    /// The returned value can be used to detach, see [Lsm::detach].
-    pub fn attach(
-        &mut self,
-        interface: &str,
-        attach_type: LwtInAttachType,
-        priority: u16,
-    ) -> Result<LwtInLinkId, ProgramError> {
+    /// The returned value can be used to detach, see [SkSkb::detach].
+    pub fn attach(&mut self, map: SockMapFd) -> Result<LwtInLinkId, ProgramError> {
         let prog_fd = self.data.fd_or_err()?;
-        let c_interface = CString::new(interface).unwrap();
-        let if_index = ifindex_from_ifname(interface)
-            .map_err(|io_error| LwtInError::NetlinkError { io_error })?;
+        let map_fd = map.as_raw_fd();
 
-        if if_index == 0 {
-            return Err(ProgramError::UnknownInterface {
-                name: interface.to_string(),
-            });
-        }
-
-        let k_ver = kernel_version().unwrap();
-
-            let link_fd = bpf_link_create(prog_fd, if_index, BPF_LWT_IN, None, flags.bits).map_err(
-                |(_, io_error)| ProgramError::SyscallError {
-                    call: "bpf_link_create".to_owned(),
-                    io_error,
-                },
-            )? as RawFd;
-            self.data
-                .links
-                .insert(LwtInLink(LwtInLinkInner::FdLink(FdLink::new(link_fd))))
+        // TODO: use 0
+        let attach_type = BPF_CGROUP_INET_INGRESS;
+        bpf_prog_attach(prog_fd, map_fd, attach_type).map_err(|(_, io_error)| {
+            ProgramError::SyscallError {
+                call: "bpf_prog_attach".to_owned(),
+                io_error,
+            }
+        })?;
+        self.data
+            .links
+            .insert(LwtInLink(ProgAttachLink::new(prog_fd, map_fd, attach_type)))
     }
 
     /// Detaches the program.
@@ -150,6 +143,6 @@ define_link_wrapper!(
     LwtInLink,
     /// The type returned by [Lsm::attach]. Can be passed to [Lsm::detach].
     LwtInLinkId,
-    FdLink,
-    FdLinkId
+    ProgAttachLink,
+    ProgAttachLinkId
 );
