@@ -151,6 +151,8 @@ fn codegen_bindings(opts: &Options) -> Result<(), anyhow::Error> {
         "TC_H_MIN_PRIORITY",
         "TC_H_MIN_INGRESS",
         "TC_H_MIN_EGRESS",
+        "RT_TABLE_MAIN",
+        "RT_SCOPE_NOWHERE",
         // Ringbuf
         "BPF_RINGBUF_.*",
     ];

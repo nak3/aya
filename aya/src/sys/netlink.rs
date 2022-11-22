@@ -11,7 +11,7 @@ use libc::{
 
 use crate::{
     generated::{
-        ifinfomsg, tcmsg, IFLA_XDP_EXPECTED_FD, IFLA_XDP_FD, IFLA_XDP_FLAGS, NLMSG_ALIGNTO,
+        ifinfomsg, tcmsg, rtmsg, IFLA_XDP_EXPECTED_FD, IFLA_XDP_FD, IFLA_XDP_FLAGS, NLMSG_ALIGNTO,
         TCA_BPF_FD, TCA_BPF_FLAGS, TCA_BPF_FLAG_ACT_DIRECT, TCA_BPF_NAME, TCA_KIND, TCA_OPTIONS,
         TC_H_CLSACT, TC_H_INGRESS, TC_H_MAJ_MASK, TC_H_UNSPEC, XDP_FLAGS_REPLACE,
     },
@@ -110,14 +110,16 @@ pub(crate) unsafe fn netlink_route_attach(
     let sock = NetlinkSocket::open()?;
     let mut req = mem::zeroed::<Request>();
 
-    let nlmsg_len = mem::size_of::<nlmsghdr>() + mem::size_of::<tcmsg>();
+    let nlmsg_len = mem::size_of::<nlmsghdr>() + mem::size_of::<rtmsg>();
     req.header = nlmsghdr {
         nlmsg_len: nlmsg_len as u32,
-        nlmsg_flags: (NLM_F_REQUEST | NLM_F_ACK | NLM_F_EXCL | NLM_F_CREATE | NLM_F_ECHO) as u16,
-        nlmsg_type: RTM_NEWTFILTER,
+        nlmsg_flags: 0 as u16, // TODO?
+        nlmsg_type: RTM_NEWROUTE,
         nlmsg_pid: 0,
         nlmsg_seq: 1,
     };
+
+    /*
     req.tc_info.tcm_family = AF_UNSPEC as u8;
     req.tc_info.tcm_handle = handle; // auto-assigned, if zero
     req.tc_info.tcm_ifindex = if_index;
@@ -135,11 +137,37 @@ pub(crate) unsafe fn netlink_route_attach(
     options.write_attr_bytes(TCA_BPF_NAME as u16, prog_name.to_bytes_with_nul())?;
     let flags: u32 = TCA_BPF_FLAG_ACT_DIRECT;
     options.write_attr(TCA_BPF_FLAGS as u16, flags)?;
+
     let options_len = options.finish()?;
 
     req.header.nlmsg_len += align_to(kind_len + options_len, NLA_ALIGNTO as usize) as u32;
     sock.send(&bytes_of(&req)[..req.header.nlmsg_len as usize])?;
+    */
 
+    req.if_info.ifi_family = AF_UNSPEC as u8;
+    req.if_info.ifi_index = if_index;
+
+    // write the attrs
+    let attrs_buf = request_attributes(&mut req, nlmsg_len);
+    let mut attrs = NestedAttrs::new(attrs_buf, IFLA_XDP);
+    attrs.write_attr(IFLA_XDP_FD as u16, fd)?;
+
+    if flags > 0 {
+        attrs.write_attr(IFLA_XDP_FLAGS as u16, flags)?;
+    }
+
+    if flags & XDP_FLAGS_REPLACE != 0 {
+        attrs.write_attr(IFLA_XDP_EXPECTED_FD as u16, old_fd.unwrap())?;
+    }
+
+    let nla_len = attrs.finish()?;
+    req.header.nlmsg_len += align_to(nla_len, NLA_ALIGNTO as usize) as u32;
+
+    sock.send(&bytes_of(&req)[..req.header.nlmsg_len as usize])?;
+
+    sock.recv()?;
+
+    Ok(())
 
 }
 
