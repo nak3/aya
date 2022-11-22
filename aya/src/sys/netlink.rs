@@ -98,6 +98,51 @@ pub(crate) unsafe fn netlink_qdisc_add_clsact(if_index: i32) -> Result<(), io::E
     Ok(())
 }
 
+// TODO
+pub(crate) unsafe fn netlink_route_attach(
+    if_index: i32,
+    attach_type: &TcAttachType,
+    prog_fd: RawFd,
+    prog_name: &CStr,
+//    priority: u16,
+    handle: u32,
+) -> Result<(u16, u32), io::Error> {
+    let sock = NetlinkSocket::open()?;
+    let mut req = mem::zeroed::<Request>();
+
+    let nlmsg_len = mem::size_of::<nlmsghdr>() + mem::size_of::<tcmsg>();
+    req.header = nlmsghdr {
+        nlmsg_len: nlmsg_len as u32,
+        nlmsg_flags: (NLM_F_REQUEST | NLM_F_ACK | NLM_F_EXCL | NLM_F_CREATE | NLM_F_ECHO) as u16,
+        nlmsg_type: RTM_NEWTFILTER,
+        nlmsg_pid: 0,
+        nlmsg_seq: 1,
+    };
+    req.tc_info.tcm_family = AF_UNSPEC as u8;
+    req.tc_info.tcm_handle = handle; // auto-assigned, if zero
+    req.tc_info.tcm_ifindex = if_index;
+    req.tc_info.tcm_parent = attach_type.parent();
+//    req.tc_info.tcm_info = tc_handler_make((priority as u32) << 16, htons(ETH_P_ALL as u16) as u32);
+
+    let attrs_buf = request_attributes(&mut req, nlmsg_len);
+
+    // add TCA_KIND
+    let kind_len = write_attr_bytes(attrs_buf, 0, TCA_KIND as u16, b"bpf\0")?;
+
+    // add TCA_OPTIONS which includes TCA_BPF_FD, TCA_BPF_NAME and TCA_BPF_FLAGS
+    let mut options = NestedAttrs::new(&mut attrs_buf[kind_len..], TCA_OPTIONS as u16);
+    options.write_attr(TCA_BPF_FD as u16, prog_fd)?;
+    options.write_attr_bytes(TCA_BPF_NAME as u16, prog_name.to_bytes_with_nul())?;
+    let flags: u32 = TCA_BPF_FLAG_ACT_DIRECT;
+    options.write_attr(TCA_BPF_FLAGS as u16, flags)?;
+    let options_len = options.finish()?;
+
+    req.header.nlmsg_len += align_to(kind_len + options_len, NLA_ALIGNTO as usize) as u32;
+    sock.send(&bytes_of(&req)[..req.header.nlmsg_len as usize])?;
+
+
+}
+
 pub(crate) unsafe fn netlink_qdisc_attach(
     if_index: i32,
     attach_type: &TcAttachType,
