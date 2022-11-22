@@ -100,6 +100,7 @@ fn codegen_bindings(opts: &Options) -> Result<(), anyhow::Error> {
         // NETLINK
         "ifinfomsg",
         "tcmsg",
+        "rtmsg",
     ];
 
     let vars = [
