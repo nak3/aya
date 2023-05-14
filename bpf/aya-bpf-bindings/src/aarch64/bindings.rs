@@ -552,7 +552,8 @@ pub mod bpf_attach_type {
     pub const BPF_PERF_EVENT: Type = 41;
     pub const BPF_TRACE_KPROBE_MULTI: Type = 42;
     pub const BPF_LSM_CGROUP: Type = 43;
-    pub const __MAX_BPF_ATTACH_TYPE: Type = 44;
+    pub const BPF_STRUCT_OPS: Type = 44;
+    pub const __MAX_BPF_ATTACH_TYPE: Type = 45;
 }
 pub mod bpf_link_type {
     pub type Type = ::aya_bpf_cty::c_uint;
@@ -586,6 +587,7 @@ pub const BPF_F_CLONE: _bindgen_ty_3 = 512;
 pub const BPF_F_MMAPABLE: _bindgen_ty_3 = 1024;
 pub const BPF_F_PRESERVE_ELEMS: _bindgen_ty_3 = 2048;
 pub const BPF_F_INNER_MAP: _bindgen_ty_3 = 4096;
+pub const BPF_F_LINK: _bindgen_ty_3 = 8192;
 pub type _bindgen_ty_3 = ::aya_bpf_cty::c_uint;
 pub mod bpf_stats_type {
     pub type Type = ::aya_bpf_cty::c_uint;
@@ -705,6 +707,7 @@ pub struct bpf_attr__bindgen_ty_4 {
     pub fd_array: __u64,
     pub core_relos: __u64,
     pub core_relo_rec_size: __u32,
+    pub log_true_size: __u32,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -795,6 +798,7 @@ pub struct bpf_attr__bindgen_ty_12 {
     pub btf_size: __u32,
     pub btf_log_size: __u32,
     pub btf_log_level: __u32,
+    pub btf_log_true_size: __u32,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -812,41 +816,47 @@ pub struct bpf_attr__bindgen_ty_13 {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct bpf_attr__bindgen_ty_14 {
-    pub prog_fd: __u32,
     pub __bindgen_anon_1: bpf_attr__bindgen_ty_14__bindgen_ty_1,
+    pub __bindgen_anon_2: bpf_attr__bindgen_ty_14__bindgen_ty_2,
     pub attach_type: __u32,
     pub flags: __u32,
-    pub __bindgen_anon_2: bpf_attr__bindgen_ty_14__bindgen_ty_2,
+    pub __bindgen_anon_3: bpf_attr__bindgen_ty_14__bindgen_ty_3,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union bpf_attr__bindgen_ty_14__bindgen_ty_1 {
+    pub prog_fd: __u32,
+    pub map_fd: __u32,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union bpf_attr__bindgen_ty_14__bindgen_ty_2 {
     pub target_fd: __u32,
     pub target_ifindex: __u32,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub union bpf_attr__bindgen_ty_14__bindgen_ty_2 {
+pub union bpf_attr__bindgen_ty_14__bindgen_ty_3 {
     pub target_btf_id: __u32,
-    pub __bindgen_anon_1: bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_1,
-    pub perf_event: bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_2,
-    pub kprobe_multi: bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_3,
-    pub tracing: bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_4,
+    pub __bindgen_anon_1: bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_1,
+    pub perf_event: bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_2,
+    pub kprobe_multi: bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_3,
+    pub tracing: bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_4,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_1 {
+pub struct bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_1 {
     pub iter_info: __u64,
     pub iter_info_len: __u32,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_2 {
+pub struct bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_2 {
     pub bpf_cookie: __u64,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_3 {
+pub struct bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_3 {
     pub flags: __u32,
     pub cnt: __u32,
     pub syms: __u64,
@@ -855,17 +865,29 @@ pub struct bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_3 {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct bpf_attr__bindgen_ty_14__bindgen_ty_2__bindgen_ty_4 {
+pub struct bpf_attr__bindgen_ty_14__bindgen_ty_3__bindgen_ty_4 {
     pub target_btf_id: __u32,
     pub cookie: __u64,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct bpf_attr__bindgen_ty_15 {
     pub link_fd: __u32,
-    pub new_prog_fd: __u32,
+    pub __bindgen_anon_1: bpf_attr__bindgen_ty_15__bindgen_ty_1,
     pub flags: __u32,
+    pub __bindgen_anon_2: bpf_attr__bindgen_ty_15__bindgen_ty_2,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union bpf_attr__bindgen_ty_15__bindgen_ty_1 {
+    pub new_prog_fd: __u32,
+    pub new_map_fd: __u32,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union bpf_attr__bindgen_ty_15__bindgen_ty_2 {
     pub old_prog_fd: __u32,
+    pub old_map_fd: __u32,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -1713,6 +1735,7 @@ pub union bpf_link_info__bindgen_ty_1 {
     pub iter: bpf_link_info__bindgen_ty_1__bindgen_ty_4,
     pub netns: bpf_link_info__bindgen_ty_1__bindgen_ty_5,
     pub xdp: bpf_link_info__bindgen_ty_1__bindgen_ty_6,
+    pub struct_ops: bpf_link_info__bindgen_ty_1__bindgen_ty_7,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -1779,6 +1802,11 @@ pub struct bpf_link_info__bindgen_ty_1__bindgen_ty_5 {
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_link_info__bindgen_ty_1__bindgen_ty_6 {
     pub ifindex: __u32,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct bpf_link_info__bindgen_ty_1__bindgen_ty_7 {
+    pub map_id: __u32,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -2207,6 +2235,20 @@ impl bpf_rb_node {
     }
 }
 #[repr(C)]
+#[repr(align(4))]
+#[derive(Debug, Copy, Clone)]
+pub struct bpf_refcount {
+    pub _bitfield_align_1: [u8; 0],
+    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize]>,
+}
+impl bpf_refcount {
+    #[inline]
+    pub fn new_bitfield_1() -> __BindgenBitfieldUnit<[u8; 4usize]> {
+        let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize]> = Default::default();
+        __bindgen_bitfield_unit
+    }
+}
+#[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_sysctl {
     pub write: __u32,
@@ -2347,6 +2389,11 @@ pub struct bpf_core_relo {
 }
 pub const BPF_F_TIMER_ABS: _bindgen_ty_39 = 1;
 pub type _bindgen_ty_39 = ::aya_bpf_cty::c_uint;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct bpf_iter_num {
+    pub __opaque: [__u64; 1usize],
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct user_pt_regs {
