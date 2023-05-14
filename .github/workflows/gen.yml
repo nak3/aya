@@ -46,6 +46,7 @@ jobs:
       - name: Check for changes
         run: |
           git diff --quiet || echo "COMMIT_CHANGES=1" >> $GITHUB_ENV
+          git diff test.txt
 
       - name: Commit Changes
         id: commit
